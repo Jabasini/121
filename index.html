@@ -235,4 +235,18 @@
     }
 
     // Update leading team
-    function update
+    function updateLeadingTeam() {
+        let leadingTeam = "";
+        if (totalAboAmin > totalAboToufic) {
+            leadingTeam = "Abo Amin is leading!";
+        } else if (totalAboToufic > totalAboAmin) {
+            leadingTeam = "Abo Toufic is leading!";
+        } else {
+            leadingTeam = "It's a tie!";
+        }
+
+        document.getElementById("leadingTeam").innerText = leadingTeam;
+    }
+</script>
+</body>
+</html>
