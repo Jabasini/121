@@ -55,7 +55,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, push, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyC0XcrSDIy3-fbzxLEh9G0Zh9SvUOVKD-o",
@@ -74,7 +74,6 @@
     let totalAboAmin = 0;
     let totalAboToufic = 0;
 
-    // وظيفة إضافة السجل
     function addRecord() {
         const date = document.getElementById("date").value;
         const name = document.getElementById("name").value;
@@ -82,22 +81,6 @@
         const scoreAboToufic = parseInt(document.getElementById("scoreAboToufic").value) || 0;
 
         if (date && name && (scoreAboAmin || scoreAboToufic)) {
-            const table = document.getElementById("recordsTable").getElementsByTagName("tbody")[0];
-            const newRow = table.insertRow();
-
-            newRow.insertCell(0).innerText = date;
-            newRow.insertCell(1).innerText = name;
-            newRow.insertCell(2).innerText = scoreAboAmin;
-            newRow.insertCell(3).innerText = scoreAboToufic;
-
-            totalAboAmin += scoreAboAmin;
-            totalAboToufic += scoreAboToufic;
-
-            document.getElementById("totalAboAmin").innerText = totalAboAmin;
-            document.getElementById("totalAboToufic").innerText = totalAboToufic;
-            updateLeadingTeam();
-
-            const newRecordKey = push(ref(database, 'records')).key;
             const recordData = {
                 date: date,
                 name: name,
@@ -105,11 +88,14 @@
                 scoreAboToufic: scoreAboToufic
             };
 
+            const newRecordKey = push(ref(database, 'records')).key;
             const updates = {};
             updates['/records/' + newRecordKey] = recordData;
+
             update(ref(database), updates)
                 .then(() => {
                     console.log("Record added successfully!");
+                    loadRecords();  // إعادة تحميل السجلات لتحديث الجدول
                 })
                 .catch((error) => {
                     console.error("Error adding record:", error);
@@ -121,7 +107,6 @@
         }
     }
 
-    // تحديث الفريق المتصدر
     function updateLeadingTeam() {
         let leadingTeam = "";
         if (totalAboAmin > totalAboToufic) {
@@ -134,8 +119,36 @@
         document.getElementById("leadingTeam").innerText = leadingTeam;
     }
 
-    // إضافة مستمع للنقر للزر
+    function loadRecords() {
+        const recordsRef = ref(database, 'records');
+        onValue(recordsRef, (snapshot) => {
+            const recordsTableBody = document.getElementById("recordsTable").getElementsByTagName("tbody")[0];
+            recordsTableBody.innerHTML = "";  // تفريغ الجدول لإعادة تعبئته
+
+            totalAboAmin = 0;
+            totalAboToufic = 0;
+
+            snapshot.forEach((childSnapshot) => {
+                const record = childSnapshot.val();
+                const newRow = recordsTableBody.insertRow();
+
+                newRow.insertCell(0).innerText = record.date;
+                newRow.insertCell(1).innerText = record.name;
+                newRow.insertCell(2).innerText = record.scoreAboAmin;
+                newRow.insertCell(3).innerText = record.scoreAboToufic;
+
+                totalAboAmin += record.scoreAboAmin;
+                totalAboToufic += record.scoreAboToufic;
+            });
+
+            document.getElementById("totalAboAmin").innerText = totalAboAmin;
+            document.getElementById("totalAboToufic").innerText = totalAboToufic;
+            updateLeadingTeam();
+        });
+    }
+
     document.getElementById("addRecordButton").addEventListener("click", addRecord);
+    loadRecords();  // استدعاء تحميل السجلات عند فتح الصفحة
 
 </script>
 </body>
