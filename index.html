@@ -37,7 +37,7 @@
         <input type="number" id="scoreAboToufic" placeholder="نتيجة Abo Toufic" required>
     </div>
     
-    <button type="button" onclick="addRecord()">إضافة نتيجة</button>
+    <button type="button" id="addRecordButton">إضافة نتيجة</button>
 </form>
 
 <table id="recordsTable">
@@ -74,6 +74,7 @@
     let totalAboAmin = 0;
     let totalAboToufic = 0;
 
+    // وظيفة إضافة السجل
     function addRecord() {
         const date = document.getElementById("date").value;
         const name = document.getElementById("name").value;
@@ -120,6 +121,7 @@
         }
     }
 
+    // تحديث الفريق المتصدر
     function updateLeadingTeam() {
         let leadingTeam = "";
         if (totalAboAmin > totalAboToufic) {
@@ -131,7 +133,10 @@
         }
         document.getElementById("leadingTeam").innerText = leadingTeam;
     }
+
+    // إضافة مستمع للنقر للزر
+    document.getElementById("addRecordButton").addEventListener("click", addRecord);
+
 </script>
 </body>
 </html>
-
