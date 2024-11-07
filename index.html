@@ -1,51 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tricks Game Score Registration</title>
-    <style>
-        /* Add your CSS styles here */
-    </style>
+    <title>تسجيل النتائج</title>
 </head>
 <body>
 
-<h2>Tricks Game Final Score Registration</h2>
+<h2>تسجيل النتيجة النهائية</h2>
 
 <div class="highlight" id="leadingTeam"></div>
 
 <div id="content-container">
-    <img src="cards.jpg" alt="Playing Cards">
     <div id="analysis">
-        <h3>Results Analysis</h3>
-        <p>Total Score of Abo Amin: <span id="totalAboAmin">0</span></p>
-        <p>Total Score of Abo Toufic: <span id="totalAboToufic">0</span></p>
-        <p>Monthly Analysis:</p>
+        <h3>تحليل النتائج</h3>
+        <p>النتيجة الإجمالية لـ Abo Amin: <span id="totalAboAmin">0</span></p>
+        <p>النتيجة الإجمالية لـ Abo Toufic: <span id="totalAboToufic">0</span></p>
         <ul id="monthlyAnalysis"></ul>
     </div>
 </div>
 
 <form id="recordForm">
     <label for="date">التاريخ:</label>
-    <input type="text" id="date" placeholder="YYYY-MM-DD" required>
+    <input type="date" id="date" required>
     
     <label for="name">اسم اللاعب:</label>
     <select id="name" required>
         <option value="">اختيار اللاعب</option>
         <option value="Abo Amin">Abo Amin</option>
-        <option value="Abo Marwan">Abo Marwan</option>
-        <option value="Abo Karam">Abo Karam</option>
         <option value="Abo Toufic">Abo Toufic</option>
     </select>
     
     <label>النتيجة:</label>
     <div style="display: flex; gap: 10px;">
-        <input type="number" id="scoreAboAmin" placeholder="Abo Amin's Score" required>
-        <input type="number" id="scoreAboToufic" placeholder="Abo Toufic's Score" required>
+        <input type="number" id="scoreAboAmin" placeholder="نتيجة Abo Amin" required>
+        <input type="number" id="scoreAboToufic" placeholder="نتيجة Abo Toufic" required>
     </div>
-    
-    <label for="notes">ملاحظات:</label>
-    <textarea id="notes" placeholder="ملاحظات إضافية..."></textarea>
     
     <button type="button" onclick="addRecord()">إضافة نتيجة</button>
 </form>
@@ -57,20 +47,16 @@
             <th>اسم اللاعب</th>
             <th>نتيجة Abo Amin</th>
             <th>نتيجة Abo Toufic</th>
-            <th>ملاحظات</th>
         </tr>
     </thead>
     <tbody>
     </tbody>
 </table>
 
-<!-- Firebase SDKs -->
 <script type="module">
-    // Import Firebase functions
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, set, push, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    // Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyC0XcrSDIy3-fbzxLEh9G0Zh9SvUOVKD-o",
         authDomain: "trix2024.firebaseapp.com",
@@ -82,28 +68,17 @@
         measurementId: "G-DXNK9CMJBN"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
-    // Variables to track scores and results
     let totalAboAmin = 0;
     let totalAboToufic = 0;
-    const monthlyResults = {};
 
-    // Auto-set current date on page load
-    window.onload = function() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById("date").value = today;
-    };
-
-    // Add record function
     function addRecord() {
         const date = document.getElementById("date").value;
         const name = document.getElementById("name").value;
         const scoreAboAmin = parseInt(document.getElementById("scoreAboAmin").value) || 0;
         const scoreAboToufic = parseInt(document.getElementById("scoreAboToufic").value) || 0;
-        const notes = document.getElementById("notes").value;
 
         if (date && name && (scoreAboAmin || scoreAboToufic)) {
             const table = document.getElementById("recordsTable").getElementsByTagName("tbody")[0];
@@ -113,71 +88,50 @@
             newRow.insertCell(1).innerText = name;
             newRow.insertCell(2).innerText = scoreAboAmin;
             newRow.insertCell(3).innerText = scoreAboToufic;
-            newRow.insertCell(4).innerText = notes;
 
-            // Update total scores
             totalAboAmin += scoreAboAmin;
             totalAboToufic += scoreAboToufic;
 
             document.getElementById("totalAboAmin").innerText = totalAboAmin;
             document.getElementById("totalAboToufic").innerText = totalAboToufic;
-
-            // Monthly Analysis
-            const month = date.slice(0, 7);
-            if (!monthlyResults[month]) {
-                monthlyResults[month] = { aboAmin: 0, aboToufic: 0 };
-            }
-            monthlyResults[month].aboAmin += scoreAboAmin;
-            monthlyResults[month].aboToufic += scoreAboToufic;
-
-            updateMonthlyAnalysis();
             updateLeadingTeam();
 
-            // Save record to Firebase Realtime Database
             const newRecordKey = push(ref(database, 'records')).key;
             const recordData = {
                 date: date,
                 name: name,
                 scoreAboAmin: scoreAboAmin,
-                scoreAboToufic: scoreAboToufic,
-                notes: notes
+                scoreAboToufic: scoreAboToufic
             };
 
             const updates = {};
             updates['/records/' + newRecordKey] = recordData;
-            update(ref(database), updates);
+            update(ref(database), updates)
+                .then(() => {
+                    console.log("Record added successfully!");
+                })
+                .catch((error) => {
+                    console.error("Error adding record:", error);
+                });
 
             document.getElementById("recordForm").reset();
-            document.getElementById("date").value = date;
         } else {
             alert("يرجى ملء جميع الحقول المطلوبة.");
         }
     }
 
-    // Update monthly analysis
-    function updateMonthlyAnalysis() {
-        const monthlyAnalysis = document.getElementById("monthlyAnalysis");
-        monthlyAnalysis.innerHTML = "";
-        for (const [month, scores] of Object.entries(monthlyResults)) {
-            const li = document.createElement("li");
-            li.innerText = `${month}: Abo Amin's Score = ${scores.aboAmin}, Abo Toufic's Score = ${scores.aboToufic}`;
-            monthlyAnalysis.appendChild(li);
-        }
-    }
-
-    // Update leading team
     function updateLeadingTeam() {
         let leadingTeam = "";
         if (totalAboAmin > totalAboToufic) {
-            leadingTeam = "Abo Amin is leading!";
+            leadingTeam = "Abo Amin هو المتصدر!";
         } else if (totalAboToufic > totalAboAmin) {
-            leadingTeam = "Abo Toufic is leading!";
+            leadingTeam = "Abo Toufic هو المتصدر!";
         } else {
-            leadingTeam = "It's a tie!";
+            leadingTeam = "التعادل!";
         }
-
         document.getElementById("leadingTeam").innerText = leadingTeam;
     }
 </script>
 </body>
 </html>
+
